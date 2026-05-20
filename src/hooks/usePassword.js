@@ -68,10 +68,10 @@ export const usePassword = () => {
         .replace(/a/gi, '@')
         .replace(/e/gi, '3')
         .replace(/i/gi, '!')
-        .replace(/o/gi, '0')
+        .replace(/o/gi, '8') // Use 8 instead of 0
         .replace(/s/gi, '$')
         .replace(/\s+/g, '')
-        + Math.floor(Math.random() * 10) + '!';
+        + (Math.floor(Math.random() * 8) + 2) + '!'; // Use digits 2-9
     }
 
     // Ensure it's approximately the target length (allow some buffer)

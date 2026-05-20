@@ -42,6 +42,9 @@ function App() {
 
   const [copied, setCopied] = useState(false);
   const [view, setView] = useState('onboarding'); // 'onboarding', 'app', 'settings'
+  const [history, setHistory] = useState(() => {
+    return JSON.parse(localStorage.getItem('passhork_history') || '[]');
+  });
 
   useEffect(() => {
     // Check if we should skip onboarding
@@ -57,6 +60,16 @@ function App() {
       generate();
     }
   }, [view, password, generating, generate]);
+
+  useEffect(() => {
+    if (password && !generating) {
+      setHistory(prev => {
+        const newHistory = [password, ...prev.filter(p => p !== password)].slice(0, 10);
+        localStorage.setItem('passhork_history', JSON.stringify(newHistory));
+        return newHistory;
+      });
+    }
+  }, [password, generating]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(password);
@@ -289,6 +302,28 @@ function App() {
             </div>
           </div>
         </div>
+
+        {/* Dynamic History */}
+        {history.length > 0 && (
+          <div className="px-2">
+            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Recent Passwords</h3>
+            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
+              {history.map((pw, i) => (
+                <button 
+                  key={i} 
+                  onClick={() => {
+                    navigator.clipboard.writeText(pw);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="bg-white border border-slate-100 text-slate-600 px-3 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap shadow-sm active:scale-95 transition-transform"
+                >
+                  {pw}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Footer info */}
         <div className="flex justify-center items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
