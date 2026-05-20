@@ -74,6 +74,23 @@ To test the PWA features on your phone:
 
 ---
 
+## Troubleshooting Mobile Access
+
+If you get an error like "The URL can't be shown" or "Connection Refused" on your phone:
+
+1. **Check the Prefix**: Safari on iPhone requires `http://` at the start. Use `http://192.168.1.50:5173` (replace with your IP).
+2. **Windows Firewall**: By default, Windows blocks incoming connections on port 5173.
+ - Go to **Windows Search** > "Windows Defender Firewall with Advanced Security".
+ - Click **Inbound Rules** > **New Rule**.
+ - Select **Port** > **Next**.
+ - Select **TCP** and enter `5173` in "Specific local ports".
+ - Select **Allow the connection** > **Next**.
+ - Ensure "Private" is checked (and "Public" if needed) > **Next**.
+ - Name it "Passhork Dev" and click **Finish**.
+3. **Same Network**: Ensure both devices are on the same Wi-Fi. Guest Wi-Fi networks often block device-to-device communication.
+
+---
+
 ## Architecture
 
 - **Frontend**: React (Vite) + Tailwind CSS

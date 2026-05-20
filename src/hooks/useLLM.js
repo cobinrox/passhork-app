@@ -58,6 +58,7 @@ export const useLLM = () => {
   }, [checkInstalledModels, checkIsCached]);
 
   const initLLM = useCallback(async (modelId = activeModelId) => {
+    setActiveModelId(modelId); // Set immediately so UI shows progress on the correct model
     setLoading(true);
     setError(null);
     setProgress(0);
@@ -86,7 +87,6 @@ export const useLLM = () => {
         });
         
         setGenerator(() => pipe);
-        setActiveModelId(modelId);
         localStorage.setItem('passhork_model_id', modelId);
         
         // Mark as installed
