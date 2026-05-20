@@ -111,7 +111,7 @@ export const Settings = ({
         {/* About */}
         <section className="pt-4 border-t border-slate-200">
           <div className="flex justify-between items-center text-xs text-slate-400 font-medium">
-            <span>Version 2.5.1</span>
+            <span>Version 2.5.2</span>
             <div className="flex gap-4">
               <a href="#" className="hover:text-indigo-600">Privacy</a>
               <a href="#" className="hover:text-indigo-600">Help</a>

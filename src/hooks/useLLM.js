@@ -72,15 +72,17 @@ export const useLLM = () => {
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
+        const device = attempt === 0 ? 'webgpu' : 'wasm'; // Try WebGPU first, then fallback to WASM
+        console.log(`Initializing LLM with ${device} (attempt ${attempt + 1})...`);
+        
         const pipe = await pipeline('text-generation', modelId, {
-          device: 'webgpu',
-          dtype: 'q4f16',                    // Explicit quantized dtype
-          max_buffer_size: 512,               // Prevent buffer warnings
-          powerPreference: 'high-performance', // Explicit WebGPU power setting
+          device: device,
+          dtype: device === 'webgpu' ? 'q4f16' : 'q8', // Use q8 for WASM, q4f16 for WebGPU
+          max_buffer_size: 512,
+          powerPreference: 'high-performance',
           progress_callback: (p) => {
             if (p.status === 'progress') {
               setProgress(p.progress / 100);
-              // If we get progress updates, it means we are definitely downloading something new
               setLoadingPhase('downloading');
             }
           },
