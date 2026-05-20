@@ -1,15 +1,33 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useLLM } from './useLLM';
 import { FALLBACK_PHRASES } from '../utils/phraseDatabase';
 import { checkComplexity } from '../utils/complexityChecker';
 import { scoreErgonomics } from '../utils/ergoScorer';
 
 export const usePassword = () => {
-  const { initLLM, generateWithAI, loading: llmLoading, progress, error: llmError, isReady } = useLLM();
+  const { 
+    initLLM, 
+    generateWithAI, 
+    loading: llmLoading, 
+    progress, 
+    error: llmError, 
+    isReady,
+    activeModelId,
+    installedModels,
+    clearCache
+  } = useLLM();
+
   const [password, setPassword] = useState('');
   const [originalPhrase, setOriginalPhrase] = useState('');
   const [generating, setGenerating] = useState(false);
   const [targetLength, setTargetLength] = useState(15);
+  const [useAIPreference, setUseAIPreference] = useState(() => {
+    return localStorage.getItem('passhork_use_ai') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('passhork_use_ai', useAIPreference);
+  }, [useAIPreference]);
 
   const generate = useCallback(async (phraseInput = null) => {
     setGenerating(true);
@@ -22,24 +40,30 @@ export const usePassword = () => {
       const randomIndex = Math.floor(Math.random() * FALLBACK_PHRASES.length);
       const selected = FALLBACK_PHRASES[randomIndex];
       phrase = selected.phrase;
-      // We might use the pre-generated password as a starting point if AI isn't ready
-      if (!isReady) {
+      
+      // If not using AI or AI not ready, use the pre-generated password from fallback
+      if (!useAIPreference || !isReady) {
         newPassword = selected.password;
       }
     }
 
     setOriginalPhrase(phrase);
 
-    if (isReady) {
-      const aiPassword = await generateWithAI(phrase, targetLength);
-      if (aiPassword) {
-        newPassword = aiPassword;
+    // Only use AI if user wants it AND it's ready
+    if (useAIPreference && isReady) {
+      try {
+        const aiPassword = await generateWithAI(phrase, targetLength);
+        if (aiPassword) {
+          newPassword = aiPassword;
+        }
+      } catch (err) {
+        console.warn('AI generation failed, falling back to internal logic');
       }
     }
 
-    // If still no password (AI failed or not ready), and it wasn't a fallback phrase
+    // If still no password (AI failed, not ready, or Internal Mode for custom phrase)
     if (!newPassword) {
-       // Simple transformation for user-provided phrases
+       // Simple transformation for phrases
        newPassword = phrase
         .replace(/a/gi, '@')
         .replace(/e/gi, '3')
@@ -50,14 +74,14 @@ export const usePassword = () => {
         + Math.floor(Math.random() * 10) + '!';
     }
 
-    // Ensure it's approximately the target length
+    // Ensure it's approximately the target length (allow some buffer)
     if (newPassword.length > targetLength + 2) {
       newPassword = newPassword.substring(0, targetLength + 1);
     }
 
     setPassword(newPassword);
     setGenerating(false);
-  }, [isReady, generateWithAI, targetLength]);
+  }, [isReady, generateWithAI, targetLength, useAIPreference]);
 
   return {
     password,
@@ -67,9 +91,14 @@ export const usePassword = () => {
     llmError,
     targetLength,
     setTargetLength,
+    useAIPreference,
+    setUseAIPreference,
     generate,
     initLLM,
     isReady,
+    activeModelId,
+    installedModels,
+    clearCache,
     complexity: checkComplexity(password),
     ergoScore: scoreErgonomics(password),
   };

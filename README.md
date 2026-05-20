@@ -43,9 +43,14 @@ To run this app on your Windows machine, ensure you have one of the following in
 2. Open your terminal in the `passhork-app` folder.
 3. Build and start the container:
    ```bash
+   # For production (Nginx on port 8080)
    docker-compose up -d
+   
+   # For development (Vite on port 5173 with hot-reload)
+   docker build --target dev -t passhork:dev .
+   docker run -p 5173:5173 passhork:dev
    ```
-4. Access the app at `http://localhost:8080`.
+4. Access the production build at `http://localhost:8080` or dev at `http://localhost:5173`.
 
 ---
 
@@ -53,13 +58,18 @@ To run this app on your Windows machine, ensure you have one of the following in
 
 To test the PWA features on your phone:
 
-1. **Find your Local IP Address**:
+1. **Configure Host Access**:
+   - The app is configured to bind to `0.0.0.0` (see `vite.config.js`), allowing external access on your local network.
+
+2. **Find your Local IP Address**:
    - Open PowerShell and type `ipconfig`.
    - Look for the "IPv4 Address" (e.g., `192.168.1.50`).
-2. **Access from Phone**:
+
+3. **Access from Phone**:
    - Ensure your phone is on the **same Wi-Fi** as your Windows machine.
-   - Open Safari (iOS) or Chrome (Android) and type `http://<your-ip>:5173` (or `:8080` if using Docker).
-3. **Install the App**:
+   - Open Safari (iOS) or Chrome (Android) and type `http://<your-ip>:5173` (or `:8080` if using the production build).
+
+4. **Install the App**:
    - Follow the in-app onboarding instructions to "Add to Home Screen."
 
 ---

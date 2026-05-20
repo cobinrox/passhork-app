@@ -32,26 +32,26 @@ export const InstallPrompt = () => {
 
   return (
     <div className="fixed bottom-6 left-4 right-4 z-40 animate-in slide-in-from-bottom-10 duration-500">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-2xl border border-primary/20 flex items-center justify-between">
+      <div className="bg-white rounded-2xl p-4 shadow-2xl border border-indigo-100 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="bg-primary/10 p-2 rounded-lg">
-            <Download className="w-5 h-5 text-primary" />
+          <div className="bg-indigo-50 p-2 rounded-lg">
+            <Download className="w-5 h-5 text-indigo-600" />
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-900 dark:text-white">Install Passhork</p>
-            <p className="text-xs text-gray-500">Add to home screen for quick access</p>
+            <p className="text-sm font-bold text-slate-900">Install Passhork</p>
+            <p className="text-xs text-slate-500">Add to home screen for quick access</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
           <button 
             onClick={handleInstall}
-            className="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg"
+            className="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
           >
             Install
           </button>
           <button 
             onClick={() => setShow(false)}
-            className="p-2 text-gray-400"
+            className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
