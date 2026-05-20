@@ -15,23 +15,13 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       workbox: {
-        maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
+        // Allow caching of large LLM model files if they are part of precache (unlikely but safe)
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024 * 1024, 
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        // Import custom cleanup script
+        importScripts: ['sw-cleanup.js'],
+        // We explicitly remove HuggingFace runtimeCaching to let Transformers.js handle it
         runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/huggingface\.co\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'huggingface-cache',
-              expiration: { 
-                maxEntries: 50, 
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          },
           {
             urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/.*/i,
             handler: 'CacheFirst',

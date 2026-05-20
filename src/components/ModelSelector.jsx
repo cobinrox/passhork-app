@@ -8,6 +8,7 @@ export const ModelSelector = ({
   installedModels, 
   onSelect, 
   loading, 
+  loadingPhase,
   progress,
   error 
 }) => {
@@ -21,17 +22,17 @@ export const ModelSelector = ({
         {MODELS.map((model) => {
           const isInstalled = installedModels.includes(model.id);
           const isActive = activeModelId === model.id;
-          const isDownloading = loading && activeModelId === model.id;
+          const isProcessing = loading && activeModelId === model.id;
 
           return (
             <button
               key={model.id}
-              onClick={() => !isDownloading && onSelect(model.id)}
-              disabled={isDownloading}
+              onClick={() => !isProcessing && onSelect(model.id)}
+              disabled={isProcessing}
               className={clsx(
                 "w-full flex flex-col p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden",
                 isActive ? "border-indigo-600 bg-indigo-50" : "border-slate-100 bg-white hover:border-slate-200",
-                isDownloading && "cursor-wait"
+                isProcessing && "cursor-wait"
               )}
             >
               <div className="flex items-start justify-between w-full relative z-10">
@@ -50,9 +51,9 @@ export const ModelSelector = ({
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {isInstalled ? (
+                  {isInstalled && !isProcessing ? (
                     <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                  ) : isDownloading ? (
+                  ) : isProcessing ? (
                     <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
                   ) : (
                     <Download className="w-5 h-5 text-slate-300" />
@@ -60,17 +61,28 @@ export const ModelSelector = ({
                 </div>
               </div>
 
-              {isDownloading && (
+              {isProcessing && loadingPhase === 'downloading' && progress > 0 && (
                 <div className="absolute bottom-0 left-0 h-1 bg-indigo-600 transition-all duration-300" style={{ width: `${progress * 100}%` }} />
               )}
+
+              {isProcessing && loadingPhase === 'loading_storage' && (
+                <div className="absolute bottom-0 left-0 h-1 w-full bg-indigo-600 animate-pulse" />
+              )}
               
-              {isActive && !isInstalled && !isDownloading && !error && (
+              {isActive && !isInstalled && !isProcessing && !error && (
                 <p className="mt-2 text-[10px] font-bold text-indigo-600 flex items-center gap-1">
                   <Download className="w-3 h-3" /> Tap to download and activate
                 </p>
               )}
+
+              {isProcessing && (
+                <p className="mt-2 text-[10px] font-bold text-indigo-600 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  {loadingPhase === 'loading_storage' ? 'Loading from cache...' : `Downloading... ${Math.round(progress * 100)}%`}
+                </p>
+              )}
               
-              {isActive && error && (
+              {isActive && error && !isProcessing && (
                 <p className="mt-2 text-[10px] font-bold text-red-500 flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" /> {error}
                 </p>

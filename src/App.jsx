@@ -12,7 +12,8 @@ import {
   Keyboard,
   Info,
   Bot,
-  Package
+  Package,
+  Loader2
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Settings } from './components/Settings';
@@ -24,6 +25,7 @@ function App() {
     password,
     originalPhrase,
     generating,
+    loadingPhase,
     progress,
     llmError,
     targetLength,
@@ -33,6 +35,7 @@ function App() {
     generate,
     initLLM,
     isReady,
+    isCached,
     activeModelId,
     installedModels,
     clearCache,
@@ -182,18 +185,37 @@ function App() {
         )}
 
         {/* Loading Progress */}
-        {generating && !isReady && progress > 0 && (
+        {generating && !isReady && (loadingPhase === 'loading_storage' || (loadingPhase === 'downloading' && progress > 0)) && (
           <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 space-y-4">
             <div className="flex justify-between items-center text-sm font-medium">
-              <span className="text-slate-600 text-xs">Downloading AI model...</span>
-              <span className="text-indigo-600 text-xs font-bold">{Math.round(progress * 100)}%</span>
+              <span className="text-slate-600 text-xs flex items-center gap-2">
+                {loadingPhase === 'loading_storage' ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin text-indigo-600" />
+                    Loading AI from storage...
+                  </>
+                ) : (
+                  'Downloading AI model...'
+                )}
+              </span>
+              {loadingPhase === 'downloading' && (
+                <span className="text-indigo-600 text-xs font-bold">{Math.round(progress * 100)}%</span>
+              )}
             </div>
             <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
               <div 
-                className="bg-indigo-600 h-full transition-all duration-300 rounded-full" 
-                style={{ width: `${progress * 100}%` }}
+                className={clsx(
+                  "bg-indigo-600 h-full transition-all duration-300 rounded-full",
+                  loadingPhase === 'loading_storage' && "animate-pulse"
+                )}
+                style={{ width: loadingPhase === 'loading_storage' ? '100%' : `${progress * 100}%` }}
               ></div>
             </div>
+            {loadingPhase === 'loading_storage' && (
+              <p className="text-[10px] text-slate-400 text-center">
+                This should only take a moment. No internet data is being used.
+              </p>
+            )}
           </div>
         )}
 

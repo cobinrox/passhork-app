@@ -9,9 +9,11 @@ export const usePassword = () => {
     initLLM, 
     generateWithAI, 
     loading: llmLoading, 
+    loadingPhase,
     progress, 
     error: llmError, 
     isReady,
+    isCached,
     activeModelId,
     installedModels,
     clearCache
@@ -24,6 +26,17 @@ export const usePassword = () => {
   const [useAIPreference, setUseAIPreference] = useState(() => {
     return localStorage.getItem('passhork_use_ai') === 'true';
   });
+
+  // Auto-initialize LLM if preference is enabled and not already ready
+  useEffect(() => {
+    if (useAIPreference && !isReady && !llmLoading && !llmError) {
+      // Small delay to allow app to breath
+      const timer = setTimeout(() => {
+        initLLM();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [useAIPreference, isReady, llmLoading, llmError, initLLM]);
 
   useEffect(() => {
     localStorage.setItem('passhork_use_ai', useAIPreference);
@@ -87,6 +100,7 @@ export const usePassword = () => {
     password,
     originalPhrase,
     generating: generating || llmLoading,
+    loadingPhase,
     progress,
     llmError,
     targetLength,
@@ -96,6 +110,7 @@ export const usePassword = () => {
     generate,
     initLLM,
     isReady,
+    isCached,
     activeModelId,
     installedModels,
     clearCache,

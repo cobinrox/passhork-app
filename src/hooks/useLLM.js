@@ -21,31 +21,51 @@ export const MODELS = [
 export const useLLM = () => {
   const [generator, setGenerator] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState(null); // 'checking', 'loading_storage', 'downloading'
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState(null);
   const [activeModelId, setActiveModelId] = useState(() => {
     return localStorage.getItem('passhork_model_id') || MODELS[0].id;
   });
   const [installedModels, setInstalledModels] = useState([]);
+  const [isCached, setIsCached] = useState(false);
 
-  // Check which models are installed (simplified check based on localStorage or Cache API)
-  // Real check would involve querying the Cache API for specific model files
+  // Check which models are installed (localStorage tracking)
   const checkInstalledModels = useCallback(async () => {
-    // For now, we'll use localStorage to track what we've successfully downloaded in the past
-    // in addition to a basic check of the Cache API if possible.
     const saved = JSON.parse(localStorage.getItem('passhork_installed_models') || '[]');
     setInstalledModels(saved);
   }, []);
 
+  // Check if current model is in cache
+  const checkIsCached = useCallback(async (modelId = activeModelId) => {
+    if (!('caches' in window)) return false;
+    try {
+      const cache = await caches.open('transformers-cache');
+      const keys = await cache.keys();
+      // We check if there are any keys related to the modelId
+      const modelCached = keys.some(key => key.url.includes(modelId));
+      setIsCached(modelCached);
+      return modelCached;
+    } catch (e) {
+      console.warn('Cache check failed:', e);
+      return false;
+    }
+  }, [activeModelId]);
+
   useEffect(() => {
     checkInstalledModels();
-  }, [checkInstalledModels]);
+    checkIsCached();
+  }, [checkInstalledModels, checkIsCached]);
 
   const initLLM = useCallback(async (modelId = activeModelId) => {
     setLoading(true);
     setError(null);
     setProgress(0);
     
+    setLoadingPhase('checking');
+    const cached = await checkIsCached(modelId);
+    setLoadingPhase(cached ? 'loading_storage' : 'downloading');
+
     const maxRetries = 3;
     let success = false;
 
@@ -59,6 +79,8 @@ export const useLLM = () => {
           progress_callback: (p) => {
             if (p.status === 'progress') {
               setProgress(p.progress / 100);
+              // If we get progress updates, it means we are definitely downloading something new
+              setLoadingPhase('downloading');
             }
           },
         });
@@ -76,7 +98,9 @@ export const useLLM = () => {
         }
         
         setLoading(false);
+        setLoadingPhase(null);
         success = true;
+        setIsCached(true);
         break;
       } catch (err) {
         console.warn(`LLM initialization attempt ${attempt + 1} failed:`, err);
@@ -84,19 +108,21 @@ export const useLLM = () => {
         if (err.name === 'QuotaExceededError') {
           setError('Storage full. Please clear browser cache and try again.');
           setLoading(false);
+          setLoadingPhase(null);
           return;
         }
 
         if (attempt === maxRetries - 1) {
           setError('Failed to load AI model. Using Internal Mode as fallback.');
           setLoading(false);
+          setLoadingPhase(null);
         } else {
           // Exponential backoff
           await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
         }
       }
     }
-  }, [activeModelId, checkInstalledModels]);
+  }, [activeModelId, checkIsCached]);
 
   const generateWithAI = useCallback(async (phrase, targetLength = 15) => {
     if (!generator) return null;
@@ -142,6 +168,7 @@ Return ONLY the password, nothing else.`;
       localStorage.removeItem('passhork_installed_models');
       setInstalledModels([]);
       setGenerator(null);
+      setIsCached(false);
       return true;
     }
     return false;
@@ -151,9 +178,11 @@ Return ONLY the password, nothing else.`;
     initLLM, 
     generateWithAI, 
     loading, 
+    loadingPhase,
     progress, 
     error, 
     isReady: !!generator, 
+    isCached,
     activeModelId, 
     installedModels,
     clearCache
