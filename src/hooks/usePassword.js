@@ -81,10 +81,19 @@ export const usePassword = () => {
         .replace(/a/gi, '@')
         .replace(/e/gi, '3')
         .replace(/i/gi, '!')
-        .replace(/o/gi, '8') // Use 8 instead of 0
+        .replace(/o/gi, '8') // Use 8 instead of 0/O
         .replace(/s/gi, '$')
+        .replace(/l/gi, '7') // Use 7 instead of l/1/I
+        .replace(/0/g, '8')
+        .replace(/1/g, '7')
         .replace(/\s+/g, '')
         + (Math.floor(Math.random() * 8) + 2) + '!'; // Use digits 2-9
+    }
+
+    // Pad if too short
+    while (newPassword.length < targetLength) {
+      const padChars = "23456789!@#$%&*+-()";
+      newPassword += padChars[Math.floor(Math.random() * padChars.length)];
     }
 
     // Ensure it's approximately the target length (allow some buffer)
