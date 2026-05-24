@@ -98,6 +98,16 @@ If you get an error like "The URL can't be shown" or "Connection Refused" on you
 - **PWA**: vite-plugin-pwa for offline caching and installation
 - **Icons**: Lucide React
 
-## Privacy Note
+## Passhork v3 (Flask + React + Gemini)
 
-Passhork does not collect any data. The "AI Brain" is downloaded once and stored in your browser's local database. All generation happens locally.
+The `v3/` directory contains the new architecture using a Python Flask backend and a React frontend.
+
+### Running v3 with Docker
+
+1. Ensure you have a `GOOGLE_API_KEY` set in your environment.
+2. Navigate to the `v3` folder.
+3. Run:
+   ```bash
+   docker-compose up --build
+   ```
+4. Access the frontend at `http://localhost:5173`.
